@@ -1,0 +1,16 @@
+{
+  "runtime_model_calls": [],
+  "local_extraction": {
+    "ocr_calls": 0,
+    "ocr_cache_hits": 11,
+    "pdf_documents": 4
+  },
+  "requests": 32,
+  "elapsed_seconds": 6.251,
+  "status_counts": {
+    "INCOMPLETE": 26,
+    "COMPLETE": 6
+  },
+  "output_sha256": "c70c406749b474ba23e83f78954b4c058eef7a6a506e74ee40a9995610e8c25a",
+  "unresolved_cases": 14
+}

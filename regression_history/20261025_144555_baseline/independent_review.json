@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "errors": [],
+  "cases": 518,
+  "steps": 2619,
+  "dataset_files_unchanged": 103,
+  "inference_leakage_scan": [],
+  "empty_deletion_outputs": [],
+  "archive_entries": 28,
+  "review_type": "independent automated artifact/static checks; not a separate human or LLM code review"
+}
