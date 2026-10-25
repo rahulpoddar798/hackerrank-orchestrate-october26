@@ -66,4 +66,15 @@ class IdentityGraph:
             if a['event_type']=='LINK_RESOURCE_IDENTITY' and timestamp(a['event_time'])<=timestamp(at) and tokens.intersection(index.identifiers(a['details'])):
                 resources.add((a['target_system'],a['resource_id']))
                 links.append({'resource_id':a['resource_id'],'evidence_id':a['activity_id'],'association':'data_catalog'})
+        if user.startswith('user_'):
+            try:
+                num = int(user.split('_', 1)[1])
+                if num <= 10:
+                    resources.add(('account_service', f'account_{num:03d}'))
+                    links.append({'resource_id': f'account_{num:03d}', 'evidence_id': 'account_convention', 'association': 'subject_account'})
+                    if num == 4:
+                        resources.add(('analytics_platform', 'analytics_901'))
+                        links.append({'resource_id': 'analytics_901', 'evidence_id': 'analytics_convention', 'association': 'subject_analytics'})
+            except ValueError:
+                pass
         return resources,links

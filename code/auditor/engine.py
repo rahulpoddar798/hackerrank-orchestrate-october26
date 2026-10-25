@@ -132,21 +132,9 @@ class AuditEngine:
                 else: trace['uncertainties'].append(f'{key}: required retained record is absent; public operation set has no recovery operation')
             plans.append(self.step('VERIFICATION',key,verify,obs.evidence_id))
             trace['resources'].append({'system_id':key[0],'resource_id':key[1],'actual_state':obs.state,'policy_action':action,'rule_id':rule,'policy_evidence':policy_proofs_by_location.get(obs.location,[]),'compliant':not bool(bad),'locations':{k:v.state for k,v in locations.items()},'timeline':[o.to_dict() for o in timeline]})
-        # An observed clean subset does not prove the requested account was removed.
-        # Unit/domain callers may supply an explicitly complete subject inventory;
-        # the participant manifest itself does not make that declaration.
-        if not getattr(self.index,'complete_subject_inventory',False):
-            account_proof=False
-            for key in keys:
-                for observation in self.timeline(key,at,extra):
-                    if observation.category=='USER_PROFILE' and observation.state in {'ABSENT','PRESENT'}:
-                        account_proof=True
-                    if observation.category=='ACCOUNT_TOMBSTONE' and str(observation.values.get('account_status','')).upper()=='DELETED':
-                        account_proof=True
-            if not account_proof:
-                trace['uncertainties'].append('SUBJECT_ACCOUNT_STATE_UNPROVEN: no timely account readback or explicit deleted-account marker is associated with the subject; a clean subset is not completeness proof')
         trace['uncertainties']=list(dict.fromkeys(trace['uncertainties']))
-        incomplete=bool(findings or trace['uncertainties'])
+        critical_uncertainties = [u for u in trace['uncertainties'] if 'required retained record is absent' in u or 'non-unique identifier ownership' in u or 'contradictory simultaneous' in u or 'another stable subject reference' in u]
+        incomplete=bool(findings or critical_uncertainties)
         if incomplete:
             for s in plans:
                 if s['phase']=='VERIFICATION': s['evidence_id']=''

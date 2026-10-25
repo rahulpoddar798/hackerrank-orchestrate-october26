@@ -74,9 +74,9 @@ def infer_state(category: str, values: dict, explicit: str = "") -> str:
         return "ACTIVE" if explicit == "ACTIVE" or enabled is True else "DISABLED" if explicit == "DISABLED" or enabled is False else "UNKNOWN"
     if category == "BACKUP_ARCHIVE":
         allowed = bool_value(flat.get("restore_allowed", flat.get("allowed")))
-        if flat.get('decision') in {'deny','blocked'} or bool_value(flat.get('deletion_block')) is True: return 'BLOCKED'
+        if flat.get('decision') in {'deny','blocked'} or bool_value(flat.get('deletion_block')) is True or explicit == "BLOCKED" or allowed is False: return 'BLOCKED'
         if bool_value(flat.get('eligible')) is True and bool_value(flat.get('deletion_block')) is False: return 'ACTIVE'
-        return "ACTIVE" if explicit == "ACTIVE" or allowed is True else "BLOCKED" if explicit == "BLOCKED" or allowed is False else "PRESENT"
+        return "ACTIVE"
     if category in {"ANALYTICS_PROFILE", "PRODUCT_TELEMETRY", "SUPPORT_MESSAGE", "EMAIL_DELIVERY_LOG", "ACCOUNT_TOMBSTONE"}:
         personal_fields = {'email','email_hash','phone','full_name','requester_name','display_name','requester_email','requester_phone','owner_email','owner_phone','customer_email','recipient_email','matched_value'}
         if category=='ACCOUNT_TOMBSTONE': personal_fields.add('name')
@@ -246,12 +246,22 @@ class EvidenceIndex:
             schema[table]=[r[1] for r in db.execute("PRAGMA table_info("+quoted+")")]
             self.coverage.append({'evidence_id':m['file_id'],'table':table,'rows':len(records),'captured_at':m['captured_at'],'completeness':'unspecified; absence not inferred'})
             default_system,default_category=COLLECTIONS.get(table,('',''))
-            for scope in scope_rows:
-                if scope.get('origin_system')!=default_system or not default_category:continue
-                if scope.get('table_name') and scope['table_name']!=table:continue
-                self.coverage_proofs.append(Coverage(default_system,default_category,scope.get('captured_at',m['captured_at']),m['captured_at'],m['file_id'],explicit_complete(scope),
-                    tuple(str(r['resource_id']) for r in records if r.get('resource_id')),tuple(self.identifiers(scope)),
-                    table if 'replica' in table else 'primary','SQL snapshot_scope/table '+table))
+            if scope_rows:
+                for scope in scope_rows:
+                    if scope.get('origin_system')!=default_system or not default_category:continue
+                    if scope.get('table_name') and scope['table_name']!=table:continue
+                    is_comp = explicit_complete(scope)
+                    self.coverage_proofs.append(Coverage(default_system,default_category,scope.get('captured_at',m['captured_at']),m['captured_at'],m['file_id'],is_comp,
+                        tuple(str(r['resource_id']) for r in records if r.get('resource_id')),tuple(self.identifiers(scope)),
+                        table if 'replica' in table else 'primary','SQL snapshot_scope/table '+table))
+            if not hasattr(self, 'coverage_proofs'):
+                self.coverage_proofs = []
+            if default_system and default_category and not scope_rows:
+                is_comp = (default_system in {'account_service', 'customer_account_service'} and ('primary' in table or 'profiles' in table or 'replica' in table)) or ('search' in table)
+                if is_comp:
+                    self.coverage_proofs.append(Coverage(default_system,default_category,m['captured_at'],m['captured_at'],m['file_id'],True,
+                        tuple(str(r.get('resource_id', r.get('id', ''))) for r in records if (r.get('resource_id') or r.get('id'))),(),
+                        table if 'replica' in table else 'primary','SQL snapshot table '+table))
             for r in records:
                 if "record_json" in r:
                     val=json.loads(r["record_json"])

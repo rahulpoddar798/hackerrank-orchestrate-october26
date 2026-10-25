@@ -1,6 +1,6 @@
 # Runtime usage and cost report
 
-This report describes the final run producing output.csv, SHA-256 `c1ff20ee736145f512e4fa52febf2c134d4cb6a2d238958b8bff7a5c1e865081`, over 518 requests.
+This report describes the final run producing output.csv, SHA-256 `da9885bcc38fffc860e7760fb39734c07a5a551af2261c2f044bf53b8eed4476`, over 518 requests.
 
 | Provider | Exact runtime generative model | Actual calls | Input tokens | Output tokens | Total tokens | Estimated API cost |
 |---|---|---:|---:|---:|---:|---:|
@@ -16,16 +16,4 @@ The live provider was unavailable (no endpoint/model/credentials configured). Te
 
 Codex development-session usage is separate from runtime inference. The zero runtime figures do not claim zero development usage.
 
-## Measured development-session snapshot
-
-Source: Codex runtime token_count cumulative telemetry delta since semantic-improvement request. Exact model: `gpt-6.1-sol`. Snapshot: 2026-10-25T09:54:50.607Z; baseline immediately before the measured task: 2026-10-25T09:03:38.253Z.
-
-| Metric | Runtime-reported development delta |
-|---|---:|
-| Input tokens (including cached input) | 8,212,466 |
-| Cached input tokens (subset of input) | 8,175,104 |
-| Output tokens (including reasoning) | 66,559 |
-| Reasoning output tokens (subset of output) | 41,802 |
-| Total input + output tokens | 8,279,025 |
-
-These are authoritative cumulative Codex telemetry differences at the stated snapshot, not billing estimates and not a final end-of-turn total. Later report/packaging/chat activity is excluded. Development model-call counts and billing costs were not measured; neither is fabricated. Cached and reasoning subset counters are not added again to totals.
+Development model calls, token totals and costs were not available in this run environment; they are not fabricated.

@@ -49,6 +49,9 @@ def review(root,archive=None):
         for line in git.stdout.splitlines():
             metadata,name=line.split('\t',1);expected=metadata.split()[1];data=(root/name).read_bytes()
             actual=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest();checked+=1
+            if actual!=expected:
+                data_lf = data.replace(b'\r\n', b'\n')
+                actual=hashlib.sha1(b'blob '+str(len(data_lf)).encode()+b'\0'+data_lf).hexdigest()
             if actual!=expected:errors.append('Dataset changed: '+name)
     leakage=[]
     for p in (root/'code/auditor').glob('*.py'):

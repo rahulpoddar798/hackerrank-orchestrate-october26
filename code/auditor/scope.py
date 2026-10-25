@@ -43,7 +43,7 @@ def scoped_absences(index, keys, subject_tokens, at):
             if key[0] != coverage.system or key[1] in coverage.resource_ids:
                 continue
             categories = {o.category for o in index.by_resource.get(key,[]) if o.available(at)}
-            if categories != {coverage.category}:
+            if categories and categories != {coverage.category}:
                 continue
             # An inventory proves absence of a known record only within its exact scope.
             observation = Observation(key[0],key[1],coverage.category,'ABSENT',coverage.observed_at,coverage.captured_at,coverage.evidence_id,
