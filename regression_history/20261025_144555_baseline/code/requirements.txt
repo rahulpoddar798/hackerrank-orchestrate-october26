@@ -1,0 +1,2 @@
+pypdfium2>=5.0,<6
+# Windows uses its built-in OCR engine. On other platforms install Tesseract.

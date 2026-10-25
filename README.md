@@ -1,157 +1,93 @@
-# HackerRank Orchestrate - October 2026
+# Ghost Data Still Exists
 
-## Ghost Data Still Exists
+Evidence-driven deletion auditing for HackerRank Orchestrate October 2026. The program reads participant-facing inputs under `dataset/`, indexes evidence once, reconstructs identities/resource states at each audit cutoff, applies CSV policies and writes `output.csv`.
 
-Build an AI agent that audits whether a user's personal data was actually deleted.
+**Current quality limit:** output is structurally valid, but the strict semantic gate fails because some artifacts do not establish identity links or conditional retention eligibility. Measured sample metrics, every mismatch and unresolved counts are in [the evaluation report](code/evaluation/evaluation_report.md). This is not a claim of complete canonical accuracy.
 
-A deletion workflow may report **Complete** while data still exists in databases, logs, support attachments, exports, search indexes, archives, or backups. Sync and restore processes may also bring deleted data back.
+## Setup
 
-For each request, the agent must first determine whether deletion was actually requested. It then returns `COMPLETE`, `INCOMPLETE`, or `NOT_APPLICABLE`, reports any remaining data or recreation risk, and produces the ordered remediation and verification steps required to finish an authorized deletion safely.
-
-Read [`problem_statement.md`](./problem_statement.md) for the complete challenge contract.
-
----
-
-## Quick Start
-
-Clone the repository and move into the project directory:
-
-```bash
-git clone https://github.com/interviewstreet/hackerrank-orchestrate-october26.git
-cd hackerrank-orchestrate-october26
-```
-
-Start your AI coding tool from the **repository root** so it automatically reads [`AGENTS.md`](./AGENTS.md) and logs your session turns to `log.txt` in the root directory.
-
-Build your solution in `code/main.py`, or use another language and document its setup and run command clearly in your README.
-
-Your solution must:
-
-- Read the input files from `dataset/`
-- Generate one prediction row for every request in `dataset/deletion_requests.csv`
-- Write the final predictions to `output.csv` in the repository root
-
-Run the starter Python entry point with:
-
-```bash
-python3 code/main.py
-```
-
-The blank template at `dataset/output.csv` is provided as a reference. Your final generated file for submission must be the root-level `output.csv`.
-
-
-## Dataset
-
-All participant-facing files are in `dataset/`:
-
-| File | Contents |
-| --- | --- |
-| `deletion_requests.csv` | 518 requests |
-| `sample_deletion_requests.csv` | 32 sample requests |
-| `sample_output.csv` | Correct sample answers |
-| `user_identities.csv` | Current user identities |
-| `user_audit_log.csv` | Historical identity changes |
-| `system_activity.csv` | Activity across services and data processes |
-| `deletion_rules.csv` | Required treatment for each data category |
-| `evidence_files.csv` | Manifest of supplied evidence files |
-| `output.csv` | Blank output template |
-
-Evidence is stored under `dataset/evidence/` and may include PDFs, images, logs, JSON, plain text, or SQL snapshot exports. SQL captures may contain a primary database, regional replicas, a reporting replica, or a failover replica so replication drift can be investigated directly. The `.sql` files are readable as text and executable with SQLite.
-
-Only `deletion_requests.csv` requires answers. The other files provide evidence and context.
-
----
-
-## Output
-
-Create `output.csv` with these columns in this exact order:
-
-```text
-case_id,deletion_status,steps_json
-```
-
-Produce exactly one row per request. `deletion_status` is `COMPLETE`, `INCOMPLETE`, or `NOT_APPLICABLE`. `steps_json` is an ordered JSON array containing findings, remediation actions, and verification checks. Use an empty array (`[]`) for `NOT_APPLICABLE`. Evidence references may be a `file_id`, `activity_id`, or `audit_id`. Determine the resource state at `audit_at` from the available evidence; reported workflow statuses and operation results are claims. Use `dataset/sample_output.csv` as the format reference.
-
-The final file must contain 518 data rows sorted by `case_id` (plus the header row). The grader parses `steps_json` as JSON, so object-key order and whitespace do not matter; array order does. Order findings, remediation, and verification in that phase order. Within a phase, follow the operation order in the problem statement, then sort by `system_id` and `resource_id`.
-
----
-
-## Evaluation
-
-`output.csv` will be compared with hidden canonical answers. Scoring considers:
-
-- deletion assessment accuracy;
-- current and historical identity resolution;
-- discovery of remaining data and recreation risks;
-- correct policy application and evidence references; and
-- completeness and ordering of remediation and verification steps.
-
-Your `code.zip` must include:
-
-```text
-code/evaluation/evaluation_report.md
-code/evaluation/usage_report.md
-```
-
-- `evaluation_report.md` must cover case, row, field, and sequence accuracy, at least three additional evaluation cases created by you, failures found, and improvements made.
-- `usage_report.md` must cover the final full-dataset run, including model providers and names, model calls, input and output tokens, total and average tokens per request, and estimated total and per-request cost. Include per-model and overall totals when using multiple models.
-
-**Important:** Place `evaluation_report.md` and `usage_report.md` inside `code/evaluation/` (matching `code/evaluation/main.py` in this starter layout), write your complete evaluation metrics, custom evaluation test cases, and token/cost breakdowns directly inside those Markdown files, and keep prompts in source code or Markdown files. Automated code evaluation ignores raw data files (`.csv`, `.tsv`, `.json`, `.jsonl`, `.sql`, `.log`), so content stored only in those formats will not be visible to the code judge or AI interviewer.
-
----
-
-## Chat Transcript
-
-This repository includes [`AGENTS.md`](./AGENTS.md), which instructs compatible AI coding tools to append conversation summaries to `log.txt` in the repository root:
-
-| Platform | Path |
-| --- | --- |
-| macOS / Linux | `<repo root>/log.txt` |
-| Windows | `<repo root>\log.txt` |
-
-- Always launch your AI coding agent from the repository root (or explicitly ask it to read `./AGENTS.md` first) so every turn is logged to `log.txt` with the required `User Prompt`, `Agent Response Summary`, `Actions`, and `Context` sections.
-- Upload `log.txt` directly as your `chat_transcript` submission on HackerRank.
-- Do not include API keys, tokens, credentials, or secrets in prompts, code, configuration, or `log.txt`.
-
----
-
-## Packaging `code.zip` and Submission
-
-| Item | Description |
-| --- | --- |
-| `code.zip` | Runnable solution, prompts, configuration, `README.md`, and `evaluation/` reports |
-| `output.csv` | One answer row for each of the 518 requests in `dataset/deletion_requests.csv` |
-| `chat_transcript` | The root `log.txt` file generated by your coding agent |
-| AI interview | Live explanation of your architecture, approach, and evaluation |
-
-You may use any programming language, model, framework, or retrieval approach. Include clear setup and execution instructions in `README.md` inside `code.zip`.
-
-To package `code.zip` from the repository root without bundling the dataset:
-
-**macOS / Linux:**
-
-```bash
-zip -r code.zip README.md code -x "*/__pycache__/*" "*/.venv/*" "*/venv/*" "*/node_modules/*" "*/.git/*" "*/.DS_Store"
-```
-
-**Windows (PowerShell):**
+Python 3.11+ and PDFium are required. No paid model API is required.
 
 ```powershell
-Compress-Archive -Path README.md, code -DestinationPath code.zip -Force
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r code/requirements.txt
+.\.venv\Scripts\python.exe code/main.py
 ```
 
-When packaging `code.zip`:
+On Linux/macOS, use `.venv/bin/python` instead and install the Tesseract executable with English language data through your OS package manager. Windows uses its installed English OCR language pack and built-in Windows.Media.Ocr API; PowerShell 5.1 runs locally. Image-only PDFs are rendered before OCR. PDFium's wheel includes its native PDF library.
 
-- Keep your evaluation reports in `code/evaluation/` so they are bundled automatically with `code` (or add `evaluation` to the archive command above if you placed them in a top-level `evaluation/` directory).
-- Do **not** include `dataset/`, virtual environments (`.venv`, `venv`, `node_modules`), or build caches (`__pycache__`). On Windows, keep `.venv` at the repository root (outside `code/`) and remove any `code/__pycache__` folders before running `Compress-Archive`.
-- Do **not** include nested archives (`.zip`, `.tar`, `.gz`, `.tgz`, `.7z`, `.rar`) inside `code.zip` — submissions containing nested archive files will be rejected.
+This session used MSYS Python 3.14: `.\.venv\bin\python.exe`. Network installation was blocked; an existing local PDFium 5.7.1 installation was copied into that isolated environment. Submitted code has no dependency on that installation path.
 
-Before submitting, confirm that:
+## Run
 
-- `output.csv` has the exact header `case_id,deletion_status,steps_json` and contains all 518 data rows sorted by `case_id`;
-- every `steps_json` value is a valid JSON array with consecutive step numbers starting at `1`;
-- findings cite valid evidence IDs, and `COMPLETE` verification steps cite evidence proving the current state;
-- proposed remediation and future verification steps use an empty `evidence_id` (`""`);
-- `code.zip` includes your runnable code, `README.md`, `code/evaluation/evaluation_report.md`, and `code/evaluation/usage_report.md`;
-- `log.txt` follows the `AGENTS.md` turn format and is uploaded to the `chat_transcript` slot; and
-- no API keys, credentials, real personal data, or sensitive configuration values are included.
+After installing requirements:
+
+```powershell
+python code/main.py
+python code/main.py --strict
+```
+
+Default paths resolve relative to the repository, so the entry point also works from another directory. Options:
+
+- `--dataset PATH`: participant data directory.
+- `--requests PATH`: request CSV; defaults to deletion_requests.csv in the data directory.
+- `--output PATH`: predictions; defaults to root output.csv.
+- `--artifacts PATH`: timelines, policy diagnostics, coverage, document facts, validation and usage.
+- `--cache PATH`: local content-addressed extraction/optional-model cache.
+- `--strict`: writes artifacts and returns exit code 2 if any case is unresolved.
+
+Output has exactly `case_id,deletion_status,steps_json`, one row per request, sorted by case_id. Complete cases contain cited verification only. Future actions/checks have empty evidence IDs. Non-deletion requests contain `[]`. Unproven completeness maps conservatively to INCOMPLETE and is explicitly diagnosed; these rows do not assert an observed violation. The default run prints the unresolved count. Strict mode rejects this fallback.
+
+All 94 evidence files are parsed, including PDFs and PNGs. [The inventory](code/evaluation/evidence_inventory.md) lists every file, capture, schema and observation count. Business documents may supply facts without a safe canonical-resource association; extracted text and diagnostics preserve that distinction. Missing rows in partial exports never prove absence.
+
+## Architecture
+
+See [ARCHITECTURE.md](code/ARCHITECTURE.md). Modules under `code/auditor/` cover observations, adapters, OCR/PDF extraction, temporal identity, policy, dependency guards, optional intent interpretation, planning and validation.
+
+There are no case-specific predictions, numeric-suffix identity joins, resource-prefix outcomes or production sample-answer lookups. Workflow/activity outcomes are claims. The supplied policy has 15 rules; the output contract defines 16 operations.
+
+The semantic improvement pass adds guarded resource-reference traversal, explicitly complete scoped-absence proofs, lookup/record separation and stronger condition interpretation. [Root causes](code/evaluation/root_cause_investigation.md), [before/after measurements and unresolved reasons](code/evaluation/semantic_regression_report.md), and [append-only regression history](code/evaluation/regression_history.md) document both improvements and regressions. The original source/output/report snapshot is preserved locally under `regression_history/` and is excluded from code.zip.
+
+## Optional model fallback
+
+The default uses language rules and local OCR. For ambiguous intent, configure an OpenAI-compatible chat endpoint through environment variables:
+
+```text
+AUDIT_MODEL_BASE_URL
+AUDIT_MODEL_NAME
+AUDIT_MODEL_PROVIDER
+AUDIT_MODEL_API_KEY
+AUDIT_INPUT_USD_PER_MILLION
+AUDIT_OUTPUT_USD_PER_MILLION
+```
+
+Credentials are never logged. Responses require a boolean, exact supporting quote and explanation; they cannot establish resource state. Actual uncached calls and provider tokens are recorded, including completed calls with invalid outputs. Controlled mock transport tests cover this optional path; no live provider is configured, so live accuracy/cost effects are unmeasured. The measured final run made no generative calls. A separate development-session token snapshot is in the usage report; development billing cost is unavailable.
+
+## Evaluate and test
+
+```powershell
+python code/evaluation/run_tests.py
+python code/main.py --requests dataset/sample_deletion_requests.csv --output evaluation_artifacts/sample_predictions.csv --artifacts evaluation_artifacts/sample
+python code/evaluation/main.py
+python code/main.py
+python code/evaluation/review.py
+python code/evaluation/reports.py
+python code/evaluation/package.py
+python code/evaluation/review.py --archive code.zip
+```
+
+Only evaluation/forensic tools read sample_output.csv. Step comparison includes all seven fields; exact-case comparison includes status and sequence, while sequence accuracy compares arrays alone. Synthetic fixtures cover identity collisions, replica drift, recreation, backup blocking, conditional retention, tombstones, conflicting/missing evidence and multilingual intent. Metamorphic tests change case IDs, resource names, observation order and email case.
+
+For an improvement checkout with a preserved local baseline, `python code/evaluation/investigate.py` regenerates the 25-case root-cause investigation and `python code/evaluation/semantic_report.py` regenerates before/after measurements and every unresolved reason. These forensic commands require that local baseline snapshot; they are not required for packaged inference or sample evaluation. The package includes their measured Markdown reports, not the baseline archive.
+
+The independent artifact checker imports no inference code. It checks schemas, dataset preservation against committed Git hashes, recognizable inference-label leakage and archive safety. This is automated verification, not a separate human/LLM semantic review.
+
+## Deliverables
+
+- `output.csv`: every required request row.
+- `code.zip`: source, dependencies, README and measured Markdown reports. Reports appear in both `code/evaluation/` and top-level `evaluation/` for compatibility with the repository's two packaging descriptions.
+- `log.txt`: append-only development transcript, submitted separately.
+
+The package excludes dataset, caches, source-record diagnostics, virtual environments, credentials, nested archives and bytecode. Rebuild with `python code/evaluation/package.py`. A package smoke test uses a fresh cache and the original read-only dataset outside the archive.
+
+Challenge: https://www.hackerrank.com/contests/hackerrank-orchestrate-october26/challenges/ghost-data-still-exists
